@@ -14,9 +14,7 @@ iterations = 10000
 device = "cuda" if torch.cuda.is_available() else "cpu"
 ###########################
 
-
-# create encode/decode
-
+# create data loaders
 train_dataset = TextDataset(file_path="./data/train.txt", context_length=context_length)
 test_dataset = TextDataset(file_path="./data/test.txt", context_length=context_length)
 train_loader = DataLoader(train_dataset, shuffle=True, batch_size=batch_size)
@@ -44,5 +42,5 @@ for i, batch in enumerate(train_loader):
 
     print(f"{i} / {iterations}")
 
-idx = torch.zeros((1,1), dtype=torch.long)
+idx = torch.tensor([64], device=device).view(-1, 1)
 print(train_dataset.decode(model.generate(idx, max_new_tokens=500)[0].tolist()))
