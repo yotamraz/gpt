@@ -14,7 +14,7 @@ def estimate_loss(model: nn.Module, data_loaders: List[torch.utils.data.DataLoad
             x, y = x.to(device), y.to(device)
             _, loss = model(x, y)
             losses[i] += loss.item()
-        set_name = loader.dataset.file_path.split('/')[-1].split('.')[0]
+        set_name = loader.dataset.set_name
         out[set_name] = losses.mean().item()
     model.train()
     return out
