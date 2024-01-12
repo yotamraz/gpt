@@ -3,18 +3,22 @@ from torch.utils.data import DataLoader
 
 from dataset import TextDataset
 from models import GPTLikeLanguageModel
+from utils import EarlyStopping
 
 ##### hyperparameters #####
-context_length = 8
-batch_size = 512
-learning_rate = 1e-3
-max_iters = 10000
+data_path = './data/j_and_silent_bob'
+context_length = 256
+batch_size = 64
+learning_rate = 3e-4
+max_iters = 5000
 eval_iters = 200
-eval_interval = 100
-n_embedding = 32
-num_heads = 4
-num_layers = 1
-dropout = 0.1
+eval_interval = 500
+n_embedding = 384
+num_heads = 6
+num_layers = 6
+dropout = 0.2
+patience = 5
+delta = 0.05
 device = "cuda" if torch.cuda.is_available() else "cpu"
 ###########################
 
@@ -24,7 +28,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 # train_loader = DataLoader(train_dataset, num_workers=8, shuffle=True, batch_size=batch_size)
 # test_loader = DataLoader(test_dataset, num_workers=8, shuffle=True, batch_size=batch_size)
 
-with open('./data/input.txt', 'r', encoding='utf-8') as f:
+with open(data_path, 'r', encoding='utf-8') as f:
     text = f.read()
 
 # here are all the unique characters that occur in this text
@@ -75,6 +79,7 @@ model = GPTLikeLanguageModel(vocab_size=vocab_size, n_embedding=n_embedding,
                              device=device).to(device)
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+es = EarlyStopping(tolerance=patience, min_delta=delta)
 
 # train loop
 for iter in range(max_iters):
@@ -95,6 +100,11 @@ for iter in range(max_iters):
     if iter % eval_interval == 0:
         losses = estimate_loss()
         print(f"{iter} / {max_iters}, {losses}")
+
+        es(train_loss=losses['train'], validation_loss=losses['val'])
+        if es.early_stop:
+            print("overfitting detected, stopping training...")
+            break
 
 context = torch.zeros((1, 1), dtype=torch.long, device=device).view(-1, 1)
 print(decode(model.generate(context, max_new_tokens=500)[0].tolist()))
