@@ -4,6 +4,8 @@ from torch.utils.data import DataLoader
 
 from dataset import TextDataset
 from models import BigramModel
+from utils import estimate_loss
+
 
 ##### hyperparameters #####
 context_length = 8
@@ -36,10 +38,14 @@ for i, batch in enumerate(train_loader):
     loss.backward()
     optimizer.step()
 
+    if i % 100 == 0:
+        losses = estimate_loss(model, [train_loader, test_loader], device)
+        print(f"{i} / {iterations}, {losses}")
+
     if i > iterations:
         break
 
-    print(f"{i} / {iterations}")
+
 
 idx = torch.tensor([64], device=device).view(-1, 1)
 print(train_dataset.decode(model.generate(idx, max_new_tokens=500)[0].tolist()))
