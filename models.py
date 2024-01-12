@@ -91,7 +91,7 @@ class TransformerBlock(nn.Module):
         return x
 
 
-class BigramModel(nn.Module):
+class NaiveLanguageModel(nn.Module):
     def __init__(self, vocab_size):
         super().__init__()
         # each token directly reads off the logits for the next token from the lookup table
@@ -125,7 +125,7 @@ class BigramModel(nn.Module):
 
         return idx
 
-class BigramModelWithSelfAtten(BigramModel):
+class GPTLikeLanguageModel(NaiveLanguageModel):
     def __init__(self, vocab_size, n_embedding, context_length, num_heads, num_layers, dropout, device):
         super().__init__(vocab_size)
         self.context_length = context_length
