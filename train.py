@@ -8,17 +8,17 @@ from utils import EarlyStopping
 ##### hyperparameters #####
 data_path = './data/j_and_silent_bob'
 context_length = 256
-batch_size = 64
+batch_size = 256
 learning_rate = 3e-4
 max_iters = 5000
 eval_iters = 200
 eval_interval = 500
 n_embedding = 384
-num_heads = 6
-num_layers = 6
-dropout = 0.2
-patience = 5
-delta = 0.05
+num_heads = 4
+num_layers = 3
+dropout = 0.3
+patience = 3
+delta = 0.1
 device = "cuda" if torch.cuda.is_available() else "cpu"
 ###########################
 
@@ -100,11 +100,11 @@ for iter in range(max_iters):
     if iter % eval_interval == 0:
         losses = estimate_loss()
         print(f"{iter} / {max_iters}, {losses}")
+        context = torch.zeros((1, 1), dtype=torch.long, device=device).view(-1, 1)
+        print(decode(model.generate(context, max_new_tokens=100)[0].tolist()))
 
         es(train_loss=losses['train'], validation_loss=losses['val'])
         if es.early_stop:
             print("overfitting detected, stopping training...")
             break
 
-context = torch.zeros((1, 1), dtype=torch.long, device=device).view(-1, 1)
-print(decode(model.generate(context, max_new_tokens=500)[0].tolist()))
